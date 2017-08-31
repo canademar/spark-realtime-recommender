@@ -84,9 +84,15 @@ class RecommendationEngine:
 
         return ratings
 
+    def user_cluster(self, user_id):
+        """Returng the cluster this user belongs to"""
+        return self.redis_utils.user_cluster(user_id)
+
     def get_most_viewed_by_cluster(self, user_id):
         """Returns most viewed movies for this user cluster"""
-        return "Just a stub"
+        cluster = self.redis_utils.user_cluster(user_id)
+        print("Engine.get_most_viewed_by_cluster: %s" % cluster) 
+        return self.redis_utils.cluster_most_viewed(cluster)
 
 
     def __init__(self, sc, dataset_path):
@@ -116,7 +122,7 @@ class RecommendationEngine:
         self.__count_and_average_ratings()
 
 
-        self.redisUtils = RedisUtils("localhost", 6379)
+        self.redis_utils = RedisUtils("localhost", 6379)
 
         # Train the model
         self.rank = 8

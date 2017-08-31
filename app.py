@@ -22,11 +22,20 @@ def movie_ratings(user_id, movie_id):
     ratings = recommendation_engine.get_ratings_for_movie_ids(user_id, [movie_id])
     return json.dumps(ratings)
  
+@main.route("/<int:user_id>/cluster/cluster", methods=["GET"])
+def user_cluster(user_id):
+    logger.debug("User cluster", user_id)
+    user_cluster= recommendation_engine.user_cluster(user_id)
+    return json.dumps({"user_cluster": user_cluster})
+
 @main.route("/<int:user_id>/cluster/mostViewed", methods=["GET"])
 def recommendation_by_cluster(user_id):
     logger.debug("User recommendation by cluster", user_id)
+    user_cluster= recommendation_engine.user_cluster(user_id)
+    print("\n\n\n\n user_cluster:%s" % user_cluster)
     most_viewed = recommendation_engine.get_most_viewed_by_cluster(user_id)
-    return json.dumps(most_viewed)
+    print("\n\n\n\n most_viewed:%s" % most_viewed)
+    return json.dumps({"user_cluster":user_cluster, "recommended":most_viewed})
  
 @main.route("/<int:user_id>/ratings", methods = ["POST"])
 def add_ratings(user_id):
