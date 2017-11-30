@@ -46,9 +46,12 @@ class RecommendationEngine:
         predicted_rating_title_and_count_RDD = \
             predicted_rating_RDD.join(self.movies_titles_RDD).join(self.movies_rating_counts_RDD)
         predicted_rating_title_and_count_RDD = \
-            predicted_rating_title_and_count_RDD.map(lambda r: (r[1][0][1], r[1][0][0], r[1][1]))
+            predicted_rating_title_and_count_RDD.map(lambda r: {"title":r[1][0][1], "score":r[1][0][0], "count":r[1][1], "id":r[0]})
         
         return predicted_rating_title_and_count_RDD
+
+
+
     
     def add_ratings(self, ratings):
         """Add additional movie ratings in the format (user_id, movie_id, rating)
@@ -80,8 +83,17 @@ class RecommendationEngine:
         user_unrated_movies_RDD = self.ratings_RDD.filter(lambda rating: not rating[0] == user_id)\
                                                  .map(lambda x: (user_id, x[1])).distinct()
         # Get predicted ratings
-        ratings = self.__predict_ratings(user_unrated_movies_RDD).filter(lambda r: r[2]>=25).takeOrdered(movies_count, key=lambda x: -x[1])
+        #ratings = self.__predict_ratings(user_unrated_movies_RDD).filter(lambda r: r[2]>=25).takeOrdered(movies_count, key=lambda x: -x[1])
+        ratings = self.__predict_ratings(user_unrated_movies_RDD).filter(lambda r: r["count"]>=25).takeOrdered(movies_count, key=lambda x: -x["score"])
 
+        return ratings
+
+    def predict_all_ratings(self, user_id):
+        """Return all predicted ratings"
+        """
+        user_unrated_movies_RDD = self.ratings_RDD.filter(lambda rating: not rating[0] == user_id)\
+                                                 .map(lambda x: (user_id, x[1])).distinct()
+        ratings = self.__predict_ratings(user_unrated_movies_RDD).collect()
         return ratings
 
     def user_cluster(self, user_id):

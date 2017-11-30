@@ -3,6 +3,7 @@ main = Blueprint('main', __name__)
  
 import json
 from engine import RecommendationEngine
+from context_utils import context_sort
  
 import logging
 logging.basicConfig(level=logging.INFO)
@@ -15,6 +16,19 @@ def top_ratings(user_id, count):
     logger.debug("User %s TOP ratings requested", user_id)
     top_ratings = recommendation_engine.get_top_ratings(user_id,count)
     return json.dumps(top_ratings)
+
+@main.route("/<int:user_id>/ratings/all", methods=["GET"])
+def all_ratings(user_id):
+    logger.debug("User %s all predicted ratings requested", user_id)
+    top_ratings = recommendation_engine.predict_all_ratings(user_id)
+    return json.dumps(top_ratings)
+
+@main.route("/<int:user_id>/context_ratings/<int:context>/top/<int:count>", methods=["GET"])
+def context_top_ratings(user_id, count, context):
+    logger.debug("User %s TOP ratings requested", user_id)
+    top_ratings = recommendation_engine.get_top_ratings(user_id,count*2)
+    sorted_ratings = context_sort(top_ratings, context)
+    return json.dumps(sorted_ratings[0:count])
  
 @main.route("/<int:user_id>/ratings/<int:movie_id>", methods=["GET"])
 def movie_ratings(user_id, movie_id):
